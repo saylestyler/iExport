@@ -2,16 +2,6 @@
 
 # from https://gist.github.com/nslater/b3cbc894ad2c2516dd02
 
-# example query:
-# sqlite> select cm.chat_id, m.date from message m join chat_message_join cm on cm.message_id = m.ROWID limit 1;
-# // 2|123456789
-
-# sqlite> select chat_identifier from chat limit 1;
-# // +123456789
-
-# python export_chat.py +123456789 sdf > urfile.html
-# // 1
-
 import sys
 import urllib
 import urlparse
@@ -27,6 +17,27 @@ CHAT_DB = path.expanduser("~/Library/Messages/chat.db")
 
 EPOCH=978307200
 
+print("""
+<!doctype html>
+<html>
+<head>
+<meta charset=\"utf-8\">
+<style>
+body { margin: 0; padding: 0; }
+.message {
+    white-space: pre-wrap;
+    max-width: 800px;
+    padding: 10px;
+    margin: 10px;
+}
+.me { background-color: #A6DBFF; }
+.buddy { background-color: #EEE; }
+.message img { max-width: 800px; }
+</style>
+</head>
+<body>
+""")
+
 def list_chats():
     db = sqlite3.connect(CHAT_DB)
     cursor = db.cursor()
@@ -37,10 +48,23 @@ def list_chats():
     for row in rows:
         print(row[0])
 
-def export(chat_id, date):
+def export_all():
     db = sqlite3.connect(CHAT_DB)
     cursor = db.cursor()
+    rows = cursor.execute("""
+        SELECT chat_identifier
+          FROM chat
+          LIMIT 15;
+    """)
+    for row in rows:
+        export(row[0])
+        print('<hr>')
 
+
+
+def export(chat_id):
+    db = sqlite3.connect(CHAT_DB)
+    cursor = db.cursor()
     rows = cursor.execute("""
           SELECT datetime(m.date + ?, 'unixepoch', 'localtime') as fmtdate,
                  m.is_from_me,
@@ -59,25 +83,6 @@ def export(chat_id, date):
         ORDER BY m.date;
     """, (EPOCH, chat_id))
 
-    print("""
-    <!doctype html>
-    <html>
-    <head>
-    <meta charset=\"utf-8\">
-    <style>
-    body { margin: 0; padding: 0; }
-    .message {
-        white-space: pre-wrap;
-        max-width: 800px;
-        padding: 10px;
-        margin: 10px;
-    }
-    .me { background-color: #A6DBFF; }
-    .buddy { background-color: #EEE; }
-    .message img { max-width: 800px; }
-    </style>
-    </head>
-    """)
 
     for row in rows:
         date = row[0]
@@ -85,29 +90,38 @@ def export(chat_id, date):
         if row[3]:
             attachment = path.expanduser(row[3])
             media_type = mimetypes.guess_type(attachment)[0]
-            with open(attachment, "rb") as image:
-                encoded_data = base64.b64encode(image.read())
+            try:
+                with open(attachment, "rb") as image:
+                    encoded_data = base64.b64encode(image.read())
+            except:
+                encoded_data = ""
             text = "<img src=\"data:%s;base64,%s\">" % (
                 media_type, encoded_data)
+            text = "<img src=\"file://%s\">" % (attachment)
+
         else:
-            text = row[2]
+            text = cgi.escape(row[2] or '')
         line = "<div class=\"message %s\" title=\"%s\">%s</div> " % (
-            who, date, cgi.escape(text))
+            who, date, text)
         print(line.encode("utf8"))
+
+    print("""
+    </body>
+    </html>
+    """)
 
 def main():
     if len(sys.argv) == 1:
-        list_chats()
+        export_all()
+        #list_chats()
         sys.exit()
     chat_id = None
     if len(sys.argv) > 1:
         chat_id = sys.argv[1]
-    date = None
     if len(sys.argv) > 2:
-        date = sys.argv[2]
-    if len(sys.argv) > 3:
         sys.exit()
-    export(chat_id, date)
+    export_all()
 
 if __name__ == "__main__":
     main()
+
