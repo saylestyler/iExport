@@ -18,24 +18,38 @@ CHAT_DB = path.expanduser("~/Library/Messages/chat.db")
 EPOCH=978307200
 
 print("""
-<!doctype html>
-<html>
-<head>
-<meta charset=\"utf-8\">
-<style>
-body { margin: 0; padding: 0; }
-.message {
-    white-space: pre-wrap;
-    max-width: 800px;
-    padding: 10px;
-    margin: 10px;
-}
-.me { background-color: #A6DBFF; }
-.buddy { background-color: #EEE; }
-.message img { max-width: 800px; }
-</style>
-</head>
-<body>
+    <!doctype html>
+    <html>
+    <head>
+    <meta charset=\"utf-8\">
+    <style>
+    body { 
+        width: 100%; 
+        margin: 0px;
+    }
+    .message {
+        max-width: 800px;
+        padding: 25px;
+        margin: 30px auto;
+        border-radius: 3px;
+        font-size: 24px;
+    }
+    .me { 
+        background-color: #c2ffe4; 
+    }
+    .buddy { 
+        background-color: #e4c2ff; 
+    }
+    .message img {
+        max-width: 760px;
+        margin: 20px;
+    }
+    hr {
+        width: 75%;
+    }
+    </style>
+    </head>
+    <body>
 """)
 
 def list_chats():
@@ -43,7 +57,9 @@ def list_chats():
     cursor = db.cursor()
     rows = cursor.execute("""
         SELECT chat_identifier
-          FROM chat;
+          FROM chat
+          ORDER by desc
+          LIMIT 2;
     """)
     for row in rows:
         print(row[0])
@@ -53,14 +69,11 @@ def export_all():
     cursor = db.cursor()
     rows = cursor.execute("""
         SELECT chat_identifier
-          FROM chat
-          LIMIT 15;
+          FROM chat;
     """)
     for row in rows:
         export(row[0])
         print('<hr>')
-
-
 
 def export(chat_id):
     db = sqlite3.connect(CHAT_DB)
@@ -95,32 +108,29 @@ def export(chat_id):
                     encoded_data = base64.b64encode(image.read())
             except:
                 encoded_data = ""
-            text = "<img src=\"data:%s;base64,%s\">" % (
-                media_type, encoded_data)
-            text = "<img src=\"file://%s\">" % (attachment)
-
+            # text = "<img src=\"data:%s;base64,%s\">" % (media_type, encoded_data) # to encode images as strings/host
+            text = "<img src=\"file://%s\">" % (attachment) # to serve images locally
         else:
             text = cgi.escape(row[2] or '')
         line = "<div class=\"message %s\" title=\"%s\">%s</div> " % (
-            who, date, text)
+                who, date, text)
         print(line.encode("utf8"))
-
-    print("""
-    </body>
-    </html>
-    """)
+        # print(who, date) # here = 'me' || buddy + utc
+        print("""
+            </body>
+            </html>
+        """)
 
 def main():
     if len(sys.argv) == 1:
         export_all()
-        #list_chats()
-        sys.exit()
-    chat_id = None
-    if len(sys.argv) > 1:
-        chat_id = sys.argv[1]
-    if len(sys.argv) > 2:
-        sys.exit()
-    export_all()
+    sys.exit()
+chat_id = None
+if len(sys.argv) > 1:
+    chat_id = sys.argv[1]
+if len(sys.argv) > 2:
+    sys.exit()
+export_all()
 
 if __name__ == "__main__":
     main()
