@@ -13,40 +13,14 @@ CHAT_DB = path.expanduser("~/Library/Messages/chat.db")
 
 EPOCH = 978307200
 
-print("""
-    <!doctype html>
-    <html>
-    <head>
-    <meta charset=\"utf-8\">
-    <style>
-    body {
-        width: 100%;
-        margin: 0px;
-    }
-    .message {
-        max-width: 600px;
-        padding: 25px;
-        margin: 30px auto;
-        border-radius: 3px;
-        font-size: 22px;
-        font-family: 'Helvetica';
-    }
-    .me { background-color: #c2ffe4; }
-    .friend { background-color: #faf; }
-    .message img { max-width: 550px; margin: 20px; }
-    hr { width: 75%; }
-    </style>
-    </head>
-    <body>
-    """)
+print("<!doctype html><html><head><meta charset=\"utf-8\"><style>body{width:100%;margin:0px;}.message{max-width:600px;padding:25px;margin:30px auto;border-radius: 3px;font-size:22px; font-family: 'Helvetica'; } .me { background-color: #c2ffe4; } .friend { background-color: #faf; } .message img { max-width: 550px; margin: 20px; } hr { width: 75%; } </style> </head> <body>")
 
 def export_all():
     db = sqlite3.connect(CHAT_DB)
     cursor = db.cursor()
     rows = cursor.execute("""
         SELECT chat_identifier
-          FROM chat
-          LIMIT 6;
+          FROM chat;
     """)
     for row in rows:
         export(row[0])
@@ -86,8 +60,8 @@ def export(chat_id):
                     encoded_data = base64.b64encode(image.read())
             except:
                 encoded_data = ""
-            # text = "<img src=\"data:%s;base64,%s\">" % (media_type, encoded_data)
-            text = "<img src=\"file://%s\">" % (attachment)
+            text = "<img src=\"data:%s;base64,%s\">" % (media_type, encoded_data)
+            # text = "<img src=\"file://%s\">" % (attachment)
         else:
             text = cgi.escape(row[2] or '')
 
