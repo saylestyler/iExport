@@ -3,7 +3,6 @@
 import base64
 import mimetypes
 import cgi
-import datetime
 
 from os import path
 
@@ -13,10 +12,7 @@ import sqlite3
 CHAT_DB = path.expanduser("~/Library/Messages/chat.db")
 ADDRESS_BOOK_DB = path.expanduser('~/Library/Application Support/AddressBook/AddressBook-v22.abcddb')
 
-EPOCH = 978307200
-
 print("<!doctype html><html><head><meta charset=\"utf-8\"><style>body{width:100%;margin:0px;}.message{max-width:600px;padding:25px;margin:30px auto;border-radius: 3px;font-size:22px; font-family: 'Helvetica'; } .me { background-color: #c2ffe4; } .friend { background-color: #faf; } .message img { max-width: 550px; margin: 20px; } hr { width: 75%; } </style> </head> <body>")
-
 
 def export_all_contacts():
     db = sqlite3.connect(ADDRESS_BOOK_DB)
@@ -30,7 +26,6 @@ def export_all_contacts():
         print(line.encode("utf8"))
         # for match in phonenumbers.PhoneNumberMatcher(line, "US"):
             # print phonenumbers.format_number(match.number, phonenumbers.PhoneNumberFormat.E164)
-
 
 def export_all():
     db = sqlite3.connect(CHAT_DB)
@@ -47,8 +42,7 @@ def export(chat_id):
     db = sqlite3.connect(CHAT_DB)
     cursor = db.cursor()
     rows = cursor.execute("""
-          SELECT datetime(m.date + ?, 'unixepoch', 'localtime') as fmtdate,
-                 m.is_from_me,
+          SELECT m.is_from_me,
                  m.text,
                  a.filename
             FROM chat as c
@@ -60,12 +54,9 @@ def export(chat_id):
               ON ma.message_id = m.ROWID
        LEFT JOIN attachment as a
               ON a.ROWID = ma.attachment_id
-           WHERE c.chat_identifier = ?
-        ORDER BY m.date;
-    """, (EPOCH, chat_id))
+           WHERE c.chat_identifier = ?;
+    """, (chat_id))
     for row in rows:
-        unicode_date = row[0]
-        formatted_date = datetime.datetime.strptime(unicode_date, '%Y-%m-%d %H:%M:%S').strftime('%m-%d %H:%M')
         who = "me" if row[1] is 1 else "friend"
         if row[3]:
             attachment = path.expanduser(row[3])
@@ -79,7 +70,7 @@ def export(chat_id):
             text = "<img src=\"file://%s\">" % (attachment)
         else:
             text = cgi.escape(row[2] or '')
-        line = "<div class=\"message %s\"> %s <br/> %s</div> " % (who, formatted_date, text)
+        line = "<div class=\"message %s\"> %s <br/> %s</div> " % (who, text)
         print(line.encode("utf8"))
     print("</body></html>")
 
