@@ -1,5 +1,8 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
+import sys
+import urllib
+import urlparse
 import base64
 import mimetypes
 import cgi
@@ -7,25 +10,41 @@ import cgi
 from os import path
 
 import sqlite3
-# import phonenumbers
 
 CHAT_DB = path.expanduser("~/Library/Messages/chat.db")
-ADDRESS_BOOK_DB = path.expanduser('~/Library/Application Support/AddressBook/AddressBook-v22.abcddb')
 
-print("<!doctype html><html><head><meta charset=\"utf-8\"><style>body{width:100%;margin:0px;}.message{max-width:600px;padding:25px;margin:30px auto;border-radius: 3px;font-size:22px; font-family: 'Helvetica'; } .me { background-color: #c2ffe4; } .friend { background-color: #faf; } .message img { max-width: 550px; margin: 20px; } hr { width: 75%; } </style> </head> <body>")
+EPOCH=978307200
 
-def export_all_contacts():
-    db = sqlite3.connect(ADDRESS_BOOK_DB)
+print("""
+<!doctype html>
+<html>
+<head>
+<meta charset=\"utf-8\">
+<style>
+body { margin: 0; padding: 0; }
+.message {
+    white-space: pre-wrap;
+    max-width: 800px;
+    padding: 10px;
+    margin: 10px;
+}
+.me { background-color: #A6DBFF; }
+.buddy { background-color: #EEE; }
+.message img { max-width: 800px; }
+</style>
+</head>
+<body>
+""")
+
+def list_chats():
+    db = sqlite3.connect(CHAT_DB)
     cursor = db.cursor()
     rows = cursor.execute("""
-        SELECT ZSTRINGFORINDEXING
-          FROM ZABCDCONTACTINDEX;
+        SELECT chat_identifier
+          FROM chat;
     """)
     for row in rows:
-        line = row[0]
-        print(line.encode("utf8"))
-        # for match in phonenumbers.PhoneNumberMatcher(line, "US"):
-            # print phonenumbers.format_number(match.number, phonenumbers.PhoneNumberFormat.E164)
+        print(row[0])
 
 def export_all():
     db = sqlite3.connect(CHAT_DB)
@@ -42,7 +61,8 @@ def export(chat_id):
     db = sqlite3.connect(CHAT_DB)
     cursor = db.cursor()
     rows = cursor.execute("""
-          SELECT m.is_from_me,
+          SELECT datetime(m.date + ?, 'unixepoch', 'localtime') as fmtdate,
+                 m.is_from_me,
                  m.text,
                  a.filename
             FROM chat as c
@@ -54,10 +74,13 @@ def export(chat_id):
               ON ma.message_id = m.ROWID
        LEFT JOIN attachment as a
               ON a.ROWID = ma.attachment_id
-           WHERE c.chat_identifier = ?;
-    """, (chat_id))
+           WHERE c.chat_identifier = ?
+        ORDER BY m.date;
+    """, (EPOCH, chat_id))
+
     for row in rows:
-        who = "me" if row[1] is 1 else "friend"
+        date = row[0]
+        who = "me" if row[1] is 1 else "contact"
         if row[3]:
             attachment = path.expanduser(row[3])
             media_type = mimetypes.guess_type(attachment)[0]
@@ -66,14 +89,21 @@ def export(chat_id):
                     encoded_data = base64.b64encode(image.read())
             except:
                 encoded_data = ""
-            # text = "<img src=\"data:%s;base64,%s\">" % (media_type, encoded_data)
-            text = "<img src=\"file://%s\">" % (attachment)
+            text = "<img src=\"data:%s;base64,%s\">" % (
+                media_type, encoded_data)
+            text = "<img src=\"%s\">" % (attachment)
+
         else:
             text = cgi.escape(row[2] or '')
-        line = "<div class=\"message %s\"> %s <br/> %s</div> " % (who, text)
+        line = "<div class=\"from-%s\" title=\"%s\">%s</div>" % (
+            who, date, text)
         print(line.encode("utf8"))
-    print("</body></html>")
 
+    print("""
+    </body>
+    </html>
+    """)
 export_all()
-# export_all_contacts()
+
+#list_chats()
 
