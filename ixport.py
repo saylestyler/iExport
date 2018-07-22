@@ -60,7 +60,7 @@ def list_chats():
           FROM chat;
     """)
     for row in rows:
-        print(row[0])
+        export(row[0])
 
 
 def export_all():
@@ -72,7 +72,6 @@ def export_all():
     """)
     for row in rows:
         export(row[0])
-        print('<hr>')
 
 
 def export(chat_id):
@@ -118,10 +117,11 @@ def export(chat_id):
             who, date, text)
         print(line.encode("utf8"))
 
-    print("""
-    </body>
-    </html>
-    """)
+
+print("""
+</body>
+</html>
+""")
 
 
 export_all()
