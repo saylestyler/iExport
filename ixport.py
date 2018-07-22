@@ -21,12 +21,31 @@ print("""
 <head>
 <meta charset=\"utf-8\">
 <style>
-body{width:100%;margin:0px;}
-.message{max-width:600px;padding:25px;margin:30px a
-uto;border-radius: 3px;font-size:22px; font-family: 'Helvetica'; }
-.from-me { background-color: #c2ffe4; }
-.friend { background-color: #faf; } .from-contact img { max-w
-idth: 550px; margin: 20px; } hr { width: 75%; }
+    body{
+      width:100%;
+      margin:0px;
+    }
+    .message{
+      max-width:600px;
+      padding:25px;
+      margin:30px auto;
+      border-radius: 3px;
+      font-size:22px;
+      font-family: 'Helvetica';
+    }
+    .from-me {
+      background-color: #c2ffe4;
+    }
+    .friend {
+      background-color: #faf;
+    }
+    .from-contact img {
+      max-width: 550px;
+      margin: 20px;
+    }
+    hr {
+      width: 75%;
+    }
 </style>
 </head>
 <body>
