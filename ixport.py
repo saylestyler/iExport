@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
 
-# import sys
-# import urllib
-# import urlparse
 import base64
 import mimetypes
 import cgi
@@ -107,8 +104,7 @@ def export(chat_id):
                     encoded_data = base64.b64encode(image.read())
             except:
                 encoded_data = ""
-            text = "<img src=\"data:%s;base64,%s\">" % (
-                media_type, encoded_data)
+            # text = "<img src=\"data:%s;base64,%s\">" % (media_type, encoded_data)
             text = "<img src=\"%s\">" % (attachment)
 
         else:
