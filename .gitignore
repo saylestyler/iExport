@@ -1,1 +1,4 @@
 *.html
+*.txt
+backup
+backup/*

@@ -46,32 +46,21 @@ print("""
 <body>
 """)
 
-
-def list_chats():
-    db = sqlite3.connect(CHAT_DB)
-    cursor = db.cursor()
-    rows = cursor.execute("""
-        SELECT chat_identifier
-          FROM chat;
-    """)
-    for row in rows:
-        export(row[0])
-
-
 def export_all():
     db = sqlite3.connect(CHAT_DB)
     cursor = db.cursor()
+    
     rows = cursor.execute("""
         SELECT chat_identifier
           FROM chat;
     """)
     for row in rows:
         export(row[0])
-
 
 def export(chat_id):
     db = sqlite3.connect(CHAT_DB)
     cursor = db.cursor()
+
     rows = cursor.execute("""
           SELECT datetime(m.date + ?, 'unixepoch', 'localtime') as fmtdate,
                  m.is_from_me,
@@ -118,6 +107,4 @@ print("""
 </html>
 """)
 
-
-# export_all()
-list_chats()
+export_all()
