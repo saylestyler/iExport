@@ -2,10 +2,8 @@
 
 import base64
 import mimetypes
-import cgi
-
+import html
 from os import path
-
 import sqlite3
 
 CHAT_DB = path.expanduser("~/Library/Messages/chat.db")
@@ -90,8 +88,9 @@ def export(chat_id):
               ON a.ROWID = ma.attachment_id
            WHERE c.chat_identifier = ?
         ORDER BY m.date
-           LIMIT 1;
+           LIMIT 1; 
     """, (EPOCH, chat_id))
+    # limit 1 = for testing purposes and obvs not all
 
     for row in rows:
         date = row[0]
@@ -108,7 +107,7 @@ def export(chat_id):
             text = "<img src=\"%s\">" % (attachment)
 
         else:
-            text = cgi.escape(row[2] or '')
+            text = html.escape(row[2] or '')
         line = "<div class=\"message from-%s\" title=\"%s\">%s</div>" % (
             who, date, text)
         print(line.encode("utf8"))
@@ -120,4 +119,5 @@ print("""
 """)
 
 
-export_all()
+# export_all()
+list_chats()
