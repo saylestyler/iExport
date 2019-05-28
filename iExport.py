@@ -79,7 +79,7 @@ def export(chat_id):
         ORDER BY m.date
            LIMIT 1; 
     """, (EPOCH, chat_id))
-    # limit 1 = for testing purposes and obvs not all
+    # change limit 1 to get all
 
     for row in rows:
         date = row[0]
@@ -92,15 +92,12 @@ def export(chat_id):
                     encoded_data = base64.b64encode(image.read())
             except:
                 encoded_data = ""
-            # text = "<img src=\"data:%s;base64,%s\">" % (media_type, encoded_data)
             text = "<img src=\"%s\">" % (attachment)
-
         else:
             text = html.escape(row[2] or '')
         line = "<div class=\"message from-%s\" title=\"%s\">%s</div>" % (
             who, date, text)
         print(line.encode("utf8"))
-
 
 print("""
 </body>
