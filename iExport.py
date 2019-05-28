@@ -46,16 +46,18 @@ print("""
 <body>
 """)
 
+
 def export_all():
     db = sqlite3.connect(CHAT_DB)
     cursor = db.cursor()
-    
+
     rows = cursor.execute("""
         SELECT chat_identifier
           FROM chat;
     """)
     for row in rows:
         export(row[0])
+
 
 def export(chat_id):
     db = sqlite3.connect(CHAT_DB)
@@ -98,6 +100,7 @@ def export(chat_id):
         line = "<div class=\"message from-%s\" title=\"%s\">%s</div>" % (
             who, date, text)
         print(line.encode("utf8"))
+
 
 print("""
 </body>
